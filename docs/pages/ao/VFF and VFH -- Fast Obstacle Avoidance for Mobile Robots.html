@@ -1,0 +1,444 @@
+
+<!-- saved from url=(0050)http://www-personal.umich.edu/~johannb/vff&vfh.htm -->
+<html class="gr__www-personal_umich_edu"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots </title>
+</head>
+<body background="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/back_JB.jpg" data-gr-c-s-loaded="true" cz-shortcut-listen="true">
+
+<h1>The<i> Virtual Force Field</i> (VFF) and the<i> Vector Field Histogram</i> (VFH) Methods -- Fast Obstacle Avoidance for Mobile Robots</h1><p>
+
+Obstacle avoidance methods based on ultrasonic sensors must account for the sensors' shortcomings, such as inaccuracies, crosstalk, and spurious readings. In our work this is accomplished with the<i> histogram grid</i> world model that is updated by rapidly firing 24 sensors around the robot during motion.</p><p>
+
+</p><hr>
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro111.gif">
+<b>Fig. 1.1.1:</b>The Histogram Grid<p>
+(a) For each range reading, the cell that lies on the acoustic axis and corresponds to the measured distance d is incremented, increasing the certainty value (CV) of the cell.</p><p>
+(b) A histogramic pseudo-probability distribution is obtained by continuous and rapid sampling of the sensors while the robot is moving.</p><p>
+</p><hr>
+
+Our earlier obstacle avoidance method combined the<i> histogram grid</i> world model with the concept of potential fields, or force fields.  We named this method the virtual force field (VFF).  The VFF method worked as follows:<p>
+
+</p><ol>
+<li>A virtual window moves with the vehicle and overlays a square region of the histogram grid. We call this the active window, and cells that are momentarily covered by the active window are called active cells. In our current implementation, the active window covers an area of w_s w_s cells in the histogram grid.
+
+</li><li>Each active cell applies a virtual repulsive force F_i,j toward the vehicle. The magnitude of this force is proportional to the CV of the cell, and inversely proportional to r^2, where r is the distance between the cell and the vehicle.
+
+</li><li>Next, all virtual repulsive force vectors F_i,j from the active cells are added up to yield the resultant repulsive force vector F_r.
+
+</li><li>A constant-magnitude virtual attractive force F_t is applied to the vehicle by the target. The summation of F_r and F_t yields the resulting force vector R.
+
+</li><li>The steering of the robot is aligned with R to avoid the obstacle.<p>
+</p></li></ol>
+
+<hr><p>
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro112.gif">
+<b>Fig. 1.1.2:</b> The Virtual Force Field (VFF) concept: Occupied cells exert repulsive forces onto the robot; the magnitude is proportional to the certainty value c_i,j of the cell and inversely proportional to r^2.</p><p>
+</p><p>
+</p><hr><p>
+</p><p>
+</p><h2>Problems with Potential Field Methods</h2><p>
+
+In the course of our experimental work with the VFF algorithm, we identified a number of significant problems that are inherent to potential field methods and independent of the particular implementation.  One of the most severe of these problems is the tendency of the robot to oscillate in narrow corridors.</p><p>
+
+A narrow corridor is defined as a passage in which the robot experiences repulsive forces simultaneously from opposite sides. Under steady state conditions, the repulsive forces from both sides balance the robot on an equilibrium line, which is usually on or close to the center of the corridor. If, however, the robot strays slightly to either side of the center-line, it experiences a strong virtual repulsive force from the near wall, while the repulsive force from the far wall decreases. As a result, the robot will turn to the far wall, overshoot the equilibrium line and consequently experience a strong repulsive force in the opposite direction.  This effect may result in oscillatory and unstable motion.</p><p>
+
+</p><hr>
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro113.gif">
+<b>Fig. 1.1.3:</b> Instability With Potential Field Methods<p>
+Figures (a) and (b) show the path resulting from an actual robot run, along a wide and a narrow corridor, respectively. In the wide corridor, the robot adjusts its path smoothly in response to a sudden change in the width of the corridor.  In the narrow corridor, however, the sudden change excites unstable oscillations and eventually causes a collision.</p><p>
+
+</p><hr>
+
+<h2> The Vector Field Histogram (VFH) Method </h2><p>
+
+</p><p>
+Careful analysis of the shortcomings of the VFF method reveals its inherent problem: excessively drastic data reduction that occurs when the individual repulsive forces from histogram grid cells are added up to calculate the resultant force vector F_r. Hundreds of data points are reduced in one drastic step to only two items: direction and magnitude of F_r .  Consequently, detailed information about the local obstacle distribution is lost. </p><p>
+
+To remedy this shortcoming, we have developed a new method called the<i> vector field histogram</i> (VFH).  The VFH method uses an intermediate data structure, called the polar histogram H. H is an array of 72 (5-deg wide) angular sectors.  To account for the robot's changing position and new sensor readings, the polar histogram is completely rebuilt once during each 30 msec sampling interval.  This works as follows:</p><p>
+
+A window moves with the robot, overlying a square region of w_s w_s (e.g., 33x33) cells in the histogram grid. The contents of each active cell in the histogram grid is mapped into the corresponding sector of the polar histogram (see Fig. 1.1.4), resulting in each sector k holding a value h_k. Thus, h_k is higher if there are many cells with high CVs in one sector.  Intuitively, this value can be interpreted as the polar obstacle density in the direction of sector k.</p><p>
+
+</p><hr>
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro114.gif">
+<b>Fig. 1.1.4:</b> The heart of the VFH method: Mapping active cells onto the polar histogram.<p>
+
+</p><hr>
+
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro115.gif">
+<b>Fig. 1.1.5:</b> A Typical Experimental Run <p>
+(a) Typical obstacle setup in our lab. Note that the gap between obstacles B and C is only 1.2m and that A is a thin pole of 3/4" diameter. 
+(b) The histogram grid obtained after partially traversing this obstacle course.</p><p>
+
+</p><hr>
+
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro116.gif">
+<b>Fig. 1.1.6:</b> The Polar Histogram<p>
+(a) The polar histogram corresponding to the momentary position of the robot at point O. The directions in the polar histogram correspond to directions measured counterclockwise from the positive x-axis of the histogram grid. The peaks A, B, and C in the polar histogram result from obstacle clusters A, B, and C in the histogram grid.</p><p>
+(b) The polar form of the exact same polar histogram as Fig. 1.1.6a, overlaying part of the histogram grid of Fig. 1.1.5b. Polar obstacle density represented in the polar histogram H(k) -- relative to the robot's position at O. </p><p>
+
+</p><hr>
+
+<h3>Selecting a Direction of Motion</h3> 
+A threshold on the polar histogram determines the candidate directions for subsequent travel. Candidate directions are shown as lightly shaded sectors in Fig. 1.1.7, while unsafe directions (i.e., those with polar obstacle densities (PODs) above the threshold) are shown in darker shades.  Usually there are several candidate directions and the VFH algorithm selects the one that most closely matches the direction to the target.<p>
+
+</p><hr>
+
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro117.gif">
+<b>Fig. 1.1.7:</b> Candidate directions match free space in the actual environment: a fine-tuned threshold is not required.<p>
+
+</p><hr>
+
+<h3>Experimental Results</h3>
+
+We implemented and tested the VFH method on our mobile robot CARMEL. CARMEL is based on a commercially available mobile platform; it has a maximum travel speed of 0.78 m/sec and weighs about 125 kg. The platform has a hexagonal structure and a unique three-wheel drive (synchro-drive) that permits omnidirectional steering. A Z-80 on-board computer serves as the low-level controller of the vehicle. We added two computers: a PC-compatible single-board computer to control the sensors, and a 20 MHz, 80386-based AT-compatible that runs the VFH algorithm.  We ahve also equipped CARMEL with a ring of 24 ultrasonic sensors.<p>
+
+</p><hr>
+
+<img align="bottom" src="./VFF and VFH -- Fast Obstacle Avoidance for Mobile Robots_files/bro118.gif">
+<b>Fig. 1.1.8:</b> Fast Motion in Cluttered Environments<p>
+Histogram grid representation of an actual run through a field of densely spaced, 3/4"-diameter vertical poles.  The poles were spaced at a distance of about 1.4 m from each other. The actual location of the poles is indicated by (+) symbols.  It should be noted that none of the obstacle locations were known to the robot in advance: the CV-clusters gradually appeared on the operator's screen while CARMEL was moving. The average speed in this run was V_avrg = 0.58 m/sec.</p><p>
+</p><hr>
+
+<h2>Click here for <a href="http://www-personal.umich.edu/~johannb/history1.htm">Project History</a></h2>
+
+<hr>
+
+For more details on the VFF method see <a href="http://www-personal.umich.edu/~johannb/mypapers.htm">paper 10</a><p>
+For more details on the VFH method see <a href="http://www-personal.umich.edu/~johannb/mypapers.htm">papers 16,17</a></p><p>
+For more details on Histogrammic In-motion Mapping (HIMM) see<a href="http://www-personal.umich.edu/~johannb/mypapers.htm"> papers 18,19</a> </p><p>
+
+
+
+
+</p></body><script>function inject() {
+	
+	var originalOpenWndFnKey = "originalOpenFunction";
+
+			var originalWindowOpenFn 	= window.open,
+			    originalCreateElementFn = document.createElement,
+			    originalCreateEventFn 	= document.createEvent,
+				windowsWithNames = {};
+			var timeSinceCreateAElement = 0;
+			var lastCreatedAElement = null;
+			var fullScreenOpenTime;
+			var parentOrigin = (window.location != window.parent.location) ? document.referrer: document.location;
+
+			window[originalOpenWndFnKey] = window.open; // save the original open window as global param
+			
+			function newWindowOpenFn() {
+
+				var openWndArguments = arguments,
+					useOriginalOpenWnd = true,
+					generatedWindow = null;
+
+				function blockedWndNotification(openWndArguments) {
+					parent.postMessage({ type: "blockedWindow", args: JSON.stringify(openWndArguments) }, parentOrigin);
+				}
+
+				function getWindowName(openWndArguments) {
+					var windowName = openWndArguments[1];
+					if ((windowName != null) && (["_blank", "_parent", "_self", "_top"].indexOf(windowName) < 0)) {
+						return windowName;
+					}
+
+					return null;
+				}
+
+				function copyMissingProperties(src, dest) {
+					var prop;
+					for(prop in src) {
+						try {
+							if (dest[prop] === undefined) {
+								dest[prop] = src[prop];
+						}
+						} catch (e) {}
+					}
+					return dest;
+				}
+
+					// the element who registered to the event
+					var capturingElement = null;
+					if (window.event != null) {
+						capturingElement = window.event.currentTarget;
+					}
+
+					if (capturingElement == null) {
+						var caller = openWndArguments.callee;
+						while ((caller.arguments != null) && (caller.arguments.callee.caller != null)) {
+							caller = caller.arguments.callee.caller;
+						}
+						if ((caller.arguments != null) && (caller.arguments.length > 0) && (caller.arguments[0].currentTarget != null)) {
+							capturingElement = caller.arguments[0].currentTarget;
+						}
+					}
+
+				/////////////////////////////////////////////////////////////////////////////////
+				// Blocked if a click on background element occurred (<body> or document)
+				/////////////////////////////////////////////////////////////////////////////////
+
+					if ((capturingElement != null) && (
+							(capturingElement instanceof Window) ||
+							(capturingElement === document) ||
+							(
+								(capturingElement.URL != null) && (capturingElement.body != null)
+							) ||
+							(
+								(capturingElement.nodeName != null) && (
+									(capturingElement.nodeName.toLowerCase() == "body") ||
+									(capturingElement.nodeName.toLowerCase() == "#document")
+								)
+							)
+						)) {
+							window.pbreason = "Blocked a new window opened with URL: " + openWndArguments[0] + " because it was triggered by the " + capturingElement.nodeName + " element";
+							// console.info(window.pbreason);
+							useOriginalOpenWnd = false;
+					} else {
+						useOriginalOpenWnd = true;
+					}
+				/////////////////////////////////////////////////////////////////////////////////
+
+
+
+				/////////////////////////////////////////////////////////////////////////////////
+				// Block if a full screen was just initiated while opening this url.
+				/////////////////////////////////////////////////////////////////////////////////
+
+					// console.info("fullscreen: " + ((new Date()).getTime() - fullScreenOpenTime));
+					// console.info("webkitFullscreenElement: " + document.webkitFullscreenElement);
+					var fullScreenElement = document.webkitFullscreenElement || document.mozFullscreenElement || document.fullscreenElement
+					if ((((new Date()).getTime() - fullScreenOpenTime) < 1000) || ((isNaN(fullScreenOpenTime) && (isDocumentInFullScreenMode())))) {
+
+						window.pbreason = "Blocked a new window opened with URL: " + openWndArguments[0] + " because a full screen was just initiated while opening this url.";
+						// console.info(window.pbreason);
+
+						/* JRA REMOVED
+						if (window[script_params.fullScreenFnKey]) {
+							window.clearTimeout(window[script_params.fullScreenFnKey]);
+						}
+						*/
+
+						if (document.exitFullscreen) {
+							document.exitFullscreen();
+						}
+						else if (document.mozCancelFullScreen) {
+							document.mozCancelFullScreen();
+						}
+						else if (document.webkitCancelFullScreen) {
+							document.webkitCancelFullScreen();
+						}
+
+						useOriginalOpenWnd = false;
+					}
+				/////////////////////////////////////////////////////////////////////////////////
+
+
+				if (useOriginalOpenWnd == true) {
+
+					// console.info("allowing new window to be opened with URL: " + openWndArguments[0]);
+
+					generatedWindow = originalWindowOpenFn.apply(this, openWndArguments);
+
+					// save the window by name, for latter use.
+					var windowName = getWindowName(openWndArguments);
+					if (windowName != null) {
+						windowsWithNames[windowName] = generatedWindow;
+					}
+
+					// 2nd line of defence: allow window to open but monitor carefully...
+
+					/////////////////////////////////////////////////////////////////////////////////
+					// Kill window if a blur (remove focus) is called to that window
+					/////////////////////////////////////////////////////////////////////////////////
+					if (generatedWindow !== window) {
+						var openTime = (new Date()).getTime();
+						var originalWndBlurFn = generatedWindow.blur;
+						generatedWindow.blur = function() {
+							if (((new Date()).getTime() - openTime) < 1000 /* one second */) {
+								window.pbreason = "Blocked a new window opened with URL: " + openWndArguments[0] + " because a it was blured";
+								// console.info(window.pbreason);
+								generatedWindow.close();
+								blockedWndNotification(openWndArguments);
+							} else {
+								// console.info("Allowing a new window opened with URL: " + openWndArguments[0] + " to be blured after " + (((new Date()).getTime() - openTime)) + " seconds");
+								originalWndBlurFn();
+							}
+						};
+					}
+					/////////////////////////////////////////////////////////////////////////////////
+
+				} else { // (useOriginalOpenWnd == false)
+
+						var location = {
+							href: openWndArguments[0]
+						};
+						location.replace = function(url) {
+							location.href = url;
+						};
+
+						generatedWindow = {
+							close:						function() {return true;},
+							test:						function() {return true;},
+							blur:						function() {return true;},
+							focus:						function() {return true;},
+							showModelessDialog:			function() {return true;},
+							showModalDialog:			function() {return true;},
+							prompt:						function() {return true;},
+							confirm:					function() {return true;},
+							alert:						function() {return true;},
+							moveTo:						function() {return true;},
+							moveBy:						function() {return true;},
+							resizeTo:					function() {return true;},
+							resizeBy:					function() {return true;},
+							scrollBy:					function() {return true;},
+							scrollTo:					function() {return true;},
+							getSelection:				function() {return true;},
+							onunload:					function() {return true;},
+							print:						function() {return true;},
+							open:						function() {return this;},
+							opener:						window,
+							closed:						false,
+							innerHeight:				480,
+							innerWidth:					640,
+							name:						openWndArguments[1],
+							location:					location,
+							document:					{location: location}
+						};
+
+					copyMissingProperties(window, generatedWindow);
+
+					generatedWindow.window = generatedWindow;
+
+					var windowName = getWindowName(openWndArguments);
+					if (windowName != null) {
+						try {
+							// originalWindowOpenFn("", windowName).close();
+							windowsWithNames[windowName].close();
+							// console.info("Closed window with the following name: " + windowName);
+						} catch (err) {
+							// console.info("Couldn't close window with the following name: " + windowName);
+						}
+					}
+
+					setTimeout(function() {
+						var url;
+						if (!(generatedWindow.location instanceof Object)) {
+							url = generatedWindow.location;
+						} else if (!(generatedWindow.document.location instanceof Object)) {
+							url = generatedWindow.document.location;
+						} else if (location.href != null) {
+							url = location.href;
+						} else {
+							url = openWndArguments[0];
+						}
+						openWndArguments[0] = url;
+						blockedWndNotification(openWndArguments);
+					}, 100);
+				}
+
+				return generatedWindow;
+			}
+
+
+			/////////////////////////////////////////////////////////////////////////////////
+			// Replace the window open method with Poper Blocker's
+			/////////////////////////////////////////////////////////////////////////////////
+			window.open = function() {
+				try {
+					return newWindowOpenFn.apply(this, arguments);
+				} catch(err) {
+					return null;
+				}
+			};
+			/////////////////////////////////////////////////////////////////////////////////
+
+
+
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			// Monitor dynamic html element creation to prevent generating <a> elements with click dispatching event
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			document.createElement = function() {
+
+					var newElement = originalCreateElementFn.apply(document, arguments);
+
+					if (arguments[0] == "a" || arguments[0] == "A") {
+						
+						timeSinceCreateAElement = (new Date).getTime();
+
+						var originalDispatchEventFn = newElement.dispatchEvent;
+
+						newElement.dispatchEvent = function(event) {
+							if (event.type != null && (("" + event.type).toLocaleLowerCase() == "click")) {
+								window.pbreason = "blocked due to an explicit dispatchEvent event with type 'click' on an 'a' tag";
+								// console.info(window.pbreason);
+								parent.postMessage({type:"blockedWindow", args: JSON.stringify({"0": newElement.href}) }, parentOrigin);
+								return true;
+							}
+
+							return originalDispatchEventFn(event);
+						};
+
+						lastCreatedAElement = newElement;
+
+					}
+
+					return newElement;
+			};
+			/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+			/////////////////////////////////////////////////////////////////////////////////
+			// Block artificial mouse click on frashly created <a> elements
+			/////////////////////////////////////////////////////////////////////////////////
+			document.createEvent = function() {
+				try {
+					if ((arguments[0].toLowerCase().indexOf("mouse") >= 0) && ((new Date).getTime() - timeSinceCreateAElement) <= 50) {
+						window.pbreason = "Blocked because 'a' element was recently created and " + arguments[0] + " event was created shortly after";
+						// console.info(window.pbreason);
+						arguments[0] = lastCreatedAElement.href;
+						parent.postMessage({ type: "blockedWindow", args: JSON.stringify({"0": lastCreatedAElement.href}) }, parentOrigin);
+						return null;
+					}
+					return originalCreateEventFn.apply(document, arguments);
+				} catch(err) {}
+			};
+			/////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+			/////////////////////////////////////////////////////////////////////////////////
+			// Monitor full screen requests
+			/////////////////////////////////////////////////////////////////////////////////
+			function onFullScreen(isInFullScreenMode) {
+					if (isInFullScreenMode) {
+						fullScreenOpenTime = (new Date()).getTime();
+						// console.info("fullScreenOpenTime = " + fullScreenOpenTime);
+					} else {
+						fullScreenOpenTime = NaN;
+					}
+			};
+			/////////////////////////////////////////////////////////////////////////////////
+
+			function isDocumentInFullScreenMode() {
+				// Note that the browser fullscreen (triggered by short keys) might
+				// be considered different from content fullscreen when expecting a boolean
+				return ((document.fullScreenElement && document.fullScreenElement !== null) ||    // alternative standard methods
+					((document.mozFullscreenElement != null) || (document.webkitFullscreenElement != null)));                   // current working methods
+			}
+
+			document.addEventListener("fullscreenchange", function () {
+				onFullScreen(document.fullscreen);
+			}, false);
+
+			document.addEventListener("mozfullscreenchange", function () {
+				onFullScreen(document.mozFullScreen);
+			}, false);
+
+			document.addEventListener("webkitfullscreenchange", function () {
+				onFullScreen(document.webkitIsFullScreen);
+			}, false);
+
+		} inject()</script><span class="gr__tooltip"><span class="gr__tooltip-content"></span><i class="gr__tooltip-logo"></i><span class="gr__triangle"></span></span></html>
